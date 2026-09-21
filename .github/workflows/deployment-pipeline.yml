@@ -62,8 +62,14 @@ jobs:
         with:
           terraform_version: 1.7.0
 
-      - name: Deploy Infrastructure
+            - name: Deploy Infrastructure
+        env:
+          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_USE_OIDC: true # ◄--- This tells Terraform to use the secure OIDC token!
         run: |
           cd terraform
           terraform init
           terraform apply -auto-approve
+
