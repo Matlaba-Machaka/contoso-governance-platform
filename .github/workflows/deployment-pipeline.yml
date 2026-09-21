@@ -1,0 +1,67 @@
+name: "Cloud Platform GitOps Pipeline"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  id-token: write  
+  contents: read
+
+jobs:
+  validate:
+    name: "Lint & Validate Configurations"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Validate Formatting
+        run: terraform fmt -check ./terraform
+
+      - name: Initialise & Validate Syntax
+        run: |
+          cd terraform
+          terraform init -backend=false
+          terraform validate
+
+      - name: Run Checkov Security Scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          framework: terraform
+          directory: ./terraform
+          # soft_fail: true # Uncomment this line if you don't want security failures to break your pipeline while testing
+
+  deploy:
+    name: "Production Execution Engine"
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Deploy Infrastructure
+        run: |
+          cd terraform
+          terraform init
+          terraform apply -auto-approve
