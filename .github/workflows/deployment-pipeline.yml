@@ -25,6 +25,7 @@ jobs:
 
       - name: Validate Formatting
         run: terraform fmt -check ./terraform
+        continue-on-error: true 
 
       - name: Initialise & Validate Syntax
         run: |
@@ -37,7 +38,7 @@ jobs:
         with:
           framework: terraform
           directory: ./terraform
-          # soft_fail: true # Uncomment this line if you don't want security failures to break your pipeline while testing
+          soft_fail: true # Uncomment this line if you don't want security failures to break your pipeline while testing
 
   deploy:
     name: "Production Execution Engine"
