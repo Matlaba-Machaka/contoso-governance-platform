@@ -1,4 +1,4 @@
-# Azure Enterprise Landing Zone & GitOps Engine
+# Azure Landing Zone & GitOps Engine
 
 A highly secure **Azure Landing Zone** built using **Terraform** and deployed via a passwordless **GitHub Actions GitOps engine** utilizing **OpenID Connect (OIDC)**. 
 
